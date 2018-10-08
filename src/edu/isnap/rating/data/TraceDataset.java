@@ -159,6 +159,7 @@ public class TraceDataset {
 	public void writeToSpreadsheet(String path, boolean zip) throws IOException {
 		String lcPath = path.toLowerCase();
 		if (zip && !lcPath.endsWith(".gz") && !lcPath.endsWith(".gzip")) path += ".gz";
+		new File(path).getParentFile().mkdirs();
 		OutputStream out = new FileOutputStream(path);
 		if (zip) out = new GZIPOutputStream(out);
 		Spreadsheet spreadsheet = new Spreadsheet();
