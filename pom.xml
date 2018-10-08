@@ -4,7 +4,7 @@
 	<groupId>edu.isnap</groupId>
 	<artifactId>rating</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>HintRating</name>
+	<name>QualityScore</name>
 	<description>Code for rating and comparing hint quality using human-authored hints.</description>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
