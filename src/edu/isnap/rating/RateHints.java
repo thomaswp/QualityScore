@@ -20,14 +20,17 @@ import edu.isnap.node.ASTNode;
 import edu.isnap.rating.EditExtractor.Deletion;
 import edu.isnap.rating.EditExtractor.Edit;
 import edu.isnap.rating.data.GoldStandard;
+import edu.isnap.rating.data.HintGenerator;
 import edu.isnap.rating.data.HintOutcome;
+import edu.isnap.rating.data.HintRequestDataset;
 import edu.isnap.rating.data.HintSet;
+import edu.isnap.rating.data.TrainingDataset;
 import edu.isnap.rating.data.TutorHint;
 import edu.isnap.rating.data.TutorHint.Priority;
 import edu.isnap.rating.data.TutorHint.Validity;
 import edu.isnap.util.Diff;
-import edu.isnap.util.Spreadsheet;
 import edu.isnap.util.Diff.ColorStyle;
+import edu.isnap.util.Spreadsheet;
 
 public class RateHints {
 
@@ -44,46 +47,59 @@ public class RateHints {
 
 	private final static String PARTIAL_UNSEEN_VALUE = "NEW_VALUE";
 
-	public static void rateDir(String path, RatingConfig config, Validity targetValidity,
-			boolean write) throws FileNotFoundException, IOException {
+	public Validity targetValidity;
+	public boolean debug;
+
+	public RateHints() {
+		this(Validity.MultipleTutors, false);
+	}
+
+	public RateHints(Validity targetValidity, boolean debug) {
+		this.debug = debug;
+		this.targetValidity = targetValidity;
+	}
+
+	public void rateDir(String path, RatingConfig config, boolean write)
+			throws FileNotFoundException, IOException {
 		GoldStandard standard = GoldStandard.parseSpreadsheet(path + GS_SPREADSHEET);
 		File algorithmsFolder = new File(path, ALGORITHMS_DIR);
 		if (!algorithmsFolder.exists() || !algorithmsFolder.isDirectory()) {
 			throw new RuntimeException("Missing algorithms folder");
 		}
 		for (File algorithmFolder : algorithmsFolder.listFiles(file -> file.isDirectory())) {
-			rateOneDir(path, algorithmFolder.getName(), config, standard, targetValidity, write,
-					false);
+			rateOneDir(path, algorithmFolder.getName(), config, standard, write);
 		}
 	}
 
-	public static void rateOneDir(String parentDir, String dir, RatingConfig config,
-			Validity targetValidity, boolean write, boolean debug)
-					throws IOException, FileNotFoundException {
-		GoldStandard standard = GoldStandard.parseSpreadsheet(parentDir + GS_SPREADSHEET);
-		rateOneDir(parentDir, dir, config, standard, targetValidity, write, debug);
+	public void rateGenerator(HintGenerator generator, String path, RatingConfig config)
+			throws FileNotFoundException, IOException {
+		GoldStandard standard = GoldStandard.parseSpreadsheet(path + GS_SPREADSHEET);
+		TrainingDataset training = TrainingDataset.fromSpreadsheet(null, path + TRAINING_FILE);
+		HintRequestDataset requests = HintRequestDataset.fromSpreadsheet(null, path + REQUEST_FILE);
+		HintSet hintSet = generator.generateHints(config, training, requests);
+		rate(standard, hintSet);
 	}
 
-	public static void rateOneDir(String parentDir, String dir, RatingConfig config,
-			GoldStandard standard, Validity targetValidity, boolean write, boolean debug)
+	public void rateOneDir(String parentDir, String dir, RatingConfig config, boolean write)
+					throws IOException, FileNotFoundException {
+		GoldStandard standard = GoldStandard.parseSpreadsheet(parentDir + GS_SPREADSHEET);
+		rateOneDir(parentDir, dir, config, standard, write);
+	}
+
+	public void rateOneDir(String parentDir, String dir, RatingConfig config,
+			GoldStandard standard, boolean write)
 					throws IOException, FileNotFoundException {
 		HintSet hintSet = HintSet.fromFolder(dir, config,
 				String.format("%s/%s/%s", parentDir, ALGORITHMS_DIR, dir));
 		System.out.println(hintSet.name);
-		HintRatingSet ratings = rate(standard, hintSet, targetValidity, debug);
+		HintRatingSet ratings = rate(standard, hintSet);
 		if (write) {
 			ratings.writeAllHints(String.format("%s/%s/%s/%s.csv",
 					parentDir, RateHints.OUTPUT_DIR, targetValidity, dir));
 		}
 	}
 
-	public static HintRatingSet rate(GoldStandard standard, HintSet hintSet,
-			Validity targetValidity) {
-		return rate(standard, hintSet, targetValidity, false);
-	}
-
-	public static HintRatingSet rate(GoldStandard standard, HintSet hintSet,
-			Validity targetValidity, boolean debug) {
+	public HintRatingSet rate(GoldStandard standard, HintSet hintSet) {
 		RatingConfig config = hintSet.config;
 		HintRatingSet ratingSet = new HintRatingSet(hintSet.name);
 		EditExtractor extractor = new EditExtractor(config, ASTNode.EMPTY_TYPE);

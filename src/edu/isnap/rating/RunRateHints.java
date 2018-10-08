@@ -12,21 +12,20 @@ public class RunRateHints {
 
 	public static void main(String[] args) throws FileNotFoundException, IOException {
 		Validity validity = Validity.MultipleTutors;
+		boolean debug = false;
+		RateHints hintRater = new RateHints(validity, debug);
 
-//		RateHints.rateOneDir(RateHints.ISNAP_F16_F17_DATA_DIR, "SourceCheck", RatingConfig.Snap,
-//				validity, true, false);
-//		RateHints.rateOneDir(RateHints.ITAP_S16_DATA_DIR, "SourceCheck", RatingConfig.Python,
-//				validity, true, false);
+//		hintRater.rateOneDir(RateHints.ISNAP_F16_F17_DATA_DIR, "SourceCheck", RatingConfig.Snap,
+//				true);
+//		hintRater.rateOneDir(RateHints.ITAP_S16_DATA_DIR, "SourceCheck", RatingConfig.Python,
+//				true);
 
-		RateHints.rateDir(RateHints.ISNAP_F16_F17_DATA_DIR, RatingConfig.Snap, validity, true);
-		RateHints.rateDir(RateHints.ITAP_S16_DATA_DIR, RatingConfig.Python, validity, true);
+		hintRater.rateDir(RateHints.ISNAP_F16_F17_DATA_DIR, RatingConfig.Snap, true);
+		hintRater.rateDir(RateHints.ITAP_S16_DATA_DIR, RatingConfig.Python, true);
 
-//		RateHints.rateDir(RateHints.ISNAP_F16_F17_DATA_DIR, RatingConfig.Snap,
-//				Validity.OneTutor, true);
-//		RateHints.rateDir(RateHints.ISNAP_F16_F17_DATA_DIR, RatingConfig.Snap,
-//				Validity.MultipleTutors, true);
-//		RateHints.rateDir(RateHints.ISNAP_F16_F17_DATA_DIR, RatingConfig.Snap,
-//				Validity.Consensus, true);
+//		hintRater.rateDir(RateHints.ISNAP_F16_F17_DATA_DIR, RatingConfig.Snap, true);
+//		hintRater.rateDir(RateHints.ISNAP_F16_F17_DATA_DIR, RatingConfig.Snap, true);
+//		hintRater.rateDir(RateHints.ISNAP_F16_F17_DATA_DIR, RatingConfig.Snap, true);
 
 //		printHints(RateHints.ISNAP_F16_F17_DATA_DIR, "chf_with_past", RatingConfig.Snap);
 //		printHints(RateHints.ISNAP_F16_F17_DATA_DIR, "chf_without_past", RatingConfig.Snap);

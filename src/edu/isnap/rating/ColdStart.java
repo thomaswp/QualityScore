@@ -23,16 +23,18 @@ public class ColdStart {
 	private final GoldStandard standard;
 	private final HintRequestDataset requestDataset;
 	private final TrainingDataset trainingDataset;
-	private final HintGenerator hintGenerator;
-	private final Validity targetValidity;
+	private final IHintGenerator hintGenerator;
+	private final RateHints hintRater;
+	private final RatingConfig config;
 
 	public ColdStart(GoldStandard standard, TrainingDataset dataset, HintRequestDataset requests,
-			HintGenerator hintGenerator, Validity targetValidity) {
+			IHintGenerator hintGenerator, Validity targetValidity, RatingConfig config) {
 		this.standard = standard;
 		this.trainingDataset = dataset;
 		this.requestDataset = requests;
 		this.hintGenerator = hintGenerator;
-		this.targetValidity = targetValidity;
+		this.hintRater = new RateHints(targetValidity, false);
+		this.config = config;
 	}
 
 	public Spreadsheet test(int rounds, int step) {
@@ -73,9 +75,10 @@ public class ColdStart {
 				}
 				String name = String.format("Round: %02d, Count: %03d/%03d, Seed: 0x%08X",
 						round, count, n, seed);
-				HintSet hintSet = hintGenerator.generateHints(name, requestDataset.getAllRequests());
+				HintSet hintSet = hintGenerator.generateHints(name, config,
+						requestDataset.getAllRequests());
 				System.out.println("==== " + name + " ===");
-				HintRatingSet ratings = RateHints.rate(assignmentStandard, hintSet, targetValidity);
+				HintRatingSet ratings = hintRater.rate(assignmentStandard, hintSet);
 
 				spreadsheet.setHeader("count", count);
 				spreadsheet.setHeader("total", n);
@@ -92,10 +95,10 @@ public class ColdStart {
 			for (Trace trace : allTraces) {
 				hintGenerator.clearTraces();
 				hintGenerator.addTrace(trace);
-				HintSet hintSet = hintGenerator.generateHints(trace.id,
+				HintSet hintSet = hintGenerator.generateHints(trace.id, config,
 						requestDataset.getAllRequests());
 				System.out.println("==== " + trace.id + " ===");
-				HintRatingSet ratings = RateHints.rate(assignmentStandard, hintSet, targetValidity);
+				HintRatingSet ratings = hintRater.rate(assignmentStandard, hintSet);
 
 				spreadsheet.setHeader("traceID", trace.id);
 				ratings.writeAllRatings(spreadsheet);
@@ -104,9 +107,9 @@ public class ColdStart {
 		return spreadsheet;
 	}
 
-	public static interface HintGenerator {
+	public static interface IHintGenerator {
 		void clearTraces();
 		void addTrace(Trace trace);
-		HintSet generateHints(String name, List<HintRequest> hintRequests);
+		HintSet generateHints(String name, RatingConfig config, List<HintRequest> hintRequests);
 	}
 }

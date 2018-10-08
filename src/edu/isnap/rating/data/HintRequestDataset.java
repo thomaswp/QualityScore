@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HintRequestDataset extends TraceDataset {
 
@@ -30,6 +31,11 @@ public class HintRequestDataset extends TraceDataset {
 		dataset.addSpreadsheet(path);
 		dataset.createRequests();
 		return dataset;
+	}
+
+	public List<HintRequest> getRequestsForAssignmentID(String assignmentID) {
+		return allRequests.stream()
+				.filter(r -> r.assignmentID.equals(assignmentID)).collect(Collectors.toList());
 	}
 
 	private void createRequests() {
