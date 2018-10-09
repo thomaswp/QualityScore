@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -69,40 +68,7 @@ public class TraceDataset {
 		}
 	}
 
-	@Deprecated
-	protected void addDirectory(String directory) throws IOException{
-//		long time = System.currentTimeMillis();
-		File dirFile = new File(directory);
-		if (!dirFile.exists()) {
-			throw new FileNotFoundException("Directory does not exist: " +
-					dirFile.getAbsolutePath());
-		}
-		for (File assignmentDir : dirFile.listFiles(f -> f.isDirectory())) {
-			addAssignment(assignmentDir);
-		}
-		sort();
-//		System.out.println("Read directory in: " + (System.currentTimeMillis() - time));
-	}
-
-	private void addAssignment(File directory) throws IOException {
-		String assignmentID = directory.getName();
-		for (File attemptDir : directory.listFiles(f -> f.isDirectory())) {
-			Trace trace = new Trace(attemptDir.getName(), assignmentID);
-			for (File snapshotFile : attemptDir.listFiles()) {
-				if (!snapshotFile.getName().toLowerCase().endsWith(".json")) {
-					System.err.println("Unknown file: " + snapshotFile.getAbsolutePath());
-					continue;
-				}
-				String source = new String(Files.readAllBytes(snapshotFile.toPath()));
-				ASTSnapshot node = ASTSnapshot.parse(source);
-				trace.add(node);
-			}
-			traceMap.add(assignmentID, trace);
-		}
-	}
-
 	protected void addSpreadsheet(String path) throws IOException {
-//		long time = System.currentTimeMillis();
 		String lcPath = path.toLowerCase();
 		boolean zip = lcPath.endsWith(".gz") || lcPath.endsWith(".gzip");
 		InputStream in = new FileInputStream(path);
@@ -123,7 +89,6 @@ public class TraceDataset {
 		}
 		parser.close();
 		sort();
-//		System.out.println("Read spreadsheet in: " + (System.currentTimeMillis() - time));
 	}
 
 	public void writeToFolder(String rootDir) throws FileNotFoundException, JSONException {

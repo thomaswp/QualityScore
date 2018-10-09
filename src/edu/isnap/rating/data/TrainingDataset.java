@@ -12,13 +12,6 @@ public class TrainingDataset extends TraceDataset {
 		super(name);
 	}
 
-	@Deprecated
-	public static TrainingDataset fromDirectory(String name, String directory) throws IOException {
-		TrainingDataset dataset = new TrainingDataset(name);
-		dataset.addDirectory(directory);
-		return dataset;
-	}
-
 	public static TrainingDataset fromSpreadsheet(String name, String path) throws IOException {
 		TrainingDataset dataset = new TrainingDataset(name);
 		dataset.addSpreadsheet(path);

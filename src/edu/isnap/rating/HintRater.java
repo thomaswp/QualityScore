@@ -32,29 +32,42 @@ import edu.isnap.util.Diff;
 import edu.isnap.util.Diff.ColorStyle;
 import edu.isnap.util.Spreadsheet;
 
-public class RateHints {
+public class HintRater {
 
 	public final static String GS_SPREADSHEET = "gold-standard.csv";
 	public final static String ALGORITHMS_DIR = "algorithms";
 	public final static String OUTPUT_DIR = "ratings";
 	public final static String TRAINING_FILE = "training.csv";
-	public static final String REQUEST_FILE = "requests.csv";
-
-	public final static String DATA_ROOT_DIR = "../data/hint-rating/";
-	public final static String ISNAP_F16_S17_DATA_DIR = DATA_ROOT_DIR + "isnapF16-S17/";
-	public final static String ISNAP_F16_F17_DATA_DIR = DATA_ROOT_DIR + "isnapF16-F17/";
-	public final static String ITAP_S16_DATA_DIR = DATA_ROOT_DIR + "itapS16/";
+	public final static String REQUEST_FILE = "requests.csv";
 
 	private final static String PARTIAL_UNSEEN_VALUE = "NEW_VALUE";
+
+	public static String DataRootDir = "data" + File.separator;
+
+	public static String getDatasetDir(String folder) {
+		return new File(DataRootDir, folder).getPath() + File.separator;
+	}
+
+	public static String isnapF16S17Dir() {
+		return getDatasetDir("isnapF16-S17");
+	}
+
+	public static String isnapF16F17Dir() {
+		return getDatasetDir("isnapF16-F17");
+	}
+
+	public static String itapS16Dir() {
+		return getDatasetDir("itapS16");
+	}
 
 	public Validity targetValidity;
 	public boolean debug;
 
-	public RateHints() {
+	public HintRater() {
 		this(Validity.MultipleTutors, false);
 	}
 
-	public RateHints(Validity targetValidity, boolean debug) {
+	public HintRater(Validity targetValidity, boolean debug) {
 		this.debug = debug;
 		this.targetValidity = targetValidity;
 	}
@@ -71,13 +84,13 @@ public class RateHints {
 		}
 	}
 
-	public void rateGenerator(HintGenerator generator, String path, RatingConfig config)
-			throws FileNotFoundException, IOException {
-		GoldStandard standard = GoldStandard.parseSpreadsheet(path + GS_SPREADSHEET);
-		TrainingDataset training = TrainingDataset.fromSpreadsheet(null, path + TRAINING_FILE);
-		HintRequestDataset requests = HintRequestDataset.fromSpreadsheet(null, path + REQUEST_FILE);
-		HintSet hintSet = generator.generateHints(config, training, requests);
-		rate(standard, hintSet);
+	public static HintSet createHintSet(HintGenerator generator, String dataPath,
+			RatingConfig config) throws FileNotFoundException, IOException {
+		TrainingDataset training = TrainingDataset.fromSpreadsheet(
+				dataPath, dataPath + TRAINING_FILE);
+		HintRequestDataset requests = HintRequestDataset.fromSpreadsheet(
+				dataPath, dataPath + REQUEST_FILE);
+		return generator.generateHints(config, training, requests);
 	}
 
 	public void rateOneDir(String parentDir, String dir, RatingConfig config, boolean write)
@@ -95,8 +108,14 @@ public class RateHints {
 		HintRatingSet ratings = rate(standard, hintSet);
 		if (write) {
 			ratings.writeAllHints(String.format("%s/%s/%s/%s.csv",
-					parentDir, RateHints.OUTPUT_DIR, targetValidity, dir));
+					parentDir, HintRater.OUTPUT_DIR, targetValidity, dir));
 		}
+	}
+
+	public HintRatingSet rate(String dataPath, HintSet hintSet)
+			throws FileNotFoundException, IOException {
+		GoldStandard standard = GoldStandard.parseSpreadsheet(dataPath + GS_SPREADSHEET);
+		return rate(standard, hintSet);
 	}
 
 	public HintRatingSet rate(GoldStandard standard, HintSet hintSet) {
@@ -422,15 +441,15 @@ public class RateHints {
 			qualityScoreFull /= nRatings;
 			qualityScorePartial /= nRatings;
 
-			double priorityMeanFull = stream()
-					.mapToDouble(rating -> rating.priorityScore(false))
-					.average().getAsDouble();
-			double priorityMeanPartial = stream()
-					.mapToDouble(rating -> rating.priorityScore(true))
-					.average().getAsDouble();
-			System.out.printf("TOTAL: %.03f (%.03f)v / %.03f (%.03f)p\n",
-					qualityScoreFull, qualityScorePartial,
-					priorityMeanFull, priorityMeanPartial);
+//			double priorityMeanFull = stream()
+//					.mapToDouble(rating -> rating.priorityScore(false))
+//					.average().getAsDouble();
+//			double priorityMeanPartial = stream()
+//					.mapToDouble(rating -> rating.priorityScore(true))
+//					.average().getAsDouble();
+			System.out.printf("TOTAL: %.03f (%.03f)v\n",
+					qualityScoreFull, qualityScorePartial);
+//					priorityMeanFull, priorityMeanPartial);
 		}
 
 		public void writeAllHints(String path) throws FileNotFoundException, IOException {
@@ -523,10 +542,10 @@ public class RateHints {
 		}
 
 		public void printSummary() {
-			System.out.printf("%s: %.02f (%.02f)v / %.02f (%.02f)p [n=%02d]\n",
+			System.out.printf("%s: %.02f (%.02f)v [n=%02d]\n",
 					requestID,
 					qualityScore(MatchType.Full), qualityScore(MatchType.Partial),
-					priorityScore(false), priorityScore(true),
+//					priorityScore(false), priorityScore(true),
 					size());
 		}
 

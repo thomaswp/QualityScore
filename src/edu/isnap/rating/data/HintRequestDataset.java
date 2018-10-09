@@ -18,14 +18,6 @@ public class HintRequestDataset extends TraceDataset {
 		return Collections.unmodifiableList(allRequests);
 	}
 
-	@Deprecated
-	public static HintRequestDataset fromDirectory(String name, String directory) throws IOException {
-		HintRequestDataset dataset = new HintRequestDataset(name);
-		dataset.addDirectory(directory);
-		dataset.createRequests();
-		return dataset;
-	}
-
 	public static HintRequestDataset fromSpreadsheet(String name, String path) throws IOException {
 		HintRequestDataset dataset = new HintRequestDataset(name);
 		dataset.addSpreadsheet(path);

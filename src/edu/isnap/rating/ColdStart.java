@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import edu.isnap.rating.RateHints.HintRatingSet;
+import edu.isnap.rating.HintRater.HintRatingSet;
 import edu.isnap.rating.data.GoldStandard;
 import edu.isnap.rating.data.HintRequest;
 import edu.isnap.rating.data.HintRequestDataset;
@@ -24,7 +24,7 @@ public class ColdStart {
 	private final HintRequestDataset requestDataset;
 	private final TrainingDataset trainingDataset;
 	private final IHintGenerator hintGenerator;
-	private final RateHints hintRater;
+	private final HintRater hintRater;
 	private final RatingConfig config;
 
 	public ColdStart(GoldStandard standard, TrainingDataset dataset, HintRequestDataset requests,
@@ -33,7 +33,7 @@ public class ColdStart {
 		this.trainingDataset = dataset;
 		this.requestDataset = requests;
 		this.hintGenerator = hintGenerator;
-		this.hintRater = new RateHints(targetValidity, false);
+		this.hintRater = new HintRater(targetValidity, false);
 		this.config = config;
 	}
 

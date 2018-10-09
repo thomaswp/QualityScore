@@ -15,7 +15,7 @@ public class Diff {
 
 	// To use ANSI colors in eclipse, get https://github.com/mihnita/ansi-econsole
 	// Otherwise, for unicode, set the run configuration output for UTF-8
-	public static ColorStyle colorStyle = ColorStyle.ANSI;
+	public static ColorStyle colorStyle = ColorStyle.None;
 
 	public static String diff(String a, String b) {
 		return diff(a, b, Integer.MAX_VALUE / 2);
