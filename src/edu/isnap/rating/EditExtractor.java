@@ -16,7 +16,6 @@ import edu.isnap.node.CodeAlignment;
 import edu.isnap.node.CodeAlignment.NodePairs;
 import edu.isnap.util.Spreadsheet;
 import edu.isnap.util.map.BiMap;
-import node.Node;
 
 public class EditExtractor {
 
@@ -31,16 +30,6 @@ public class EditExtractor {
 
 	public Bag<Edit> getEdits(ASTNode from, ASTNode to) {
 		return extractEditsUsingCodeAlign(from, to);
-	}
-
-	public static Node<ASTNode> toNode(ASTNode astNode) {
-		Node<ASTNode> node = new Node<>(astNode);
-		if (astNode != null) {
-			for (ASTNode child : astNode.children()) {
-				node.addChild(toNode(child));
-			}
-		}
-		return node;
 	}
 
 	public static void printEditsComparison(Bag<Edit> editsA, Bag<Edit> editsB,

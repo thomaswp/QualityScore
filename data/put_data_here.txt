@@ -1,0 +1,1 @@
+Get data from http://go.ncsu.edu/hint-quality-data

@@ -3,4 +3,4 @@ target
 .settings
 data
 !data/README.md
-!data/put_data_here
+!data/put_data_here.txt
