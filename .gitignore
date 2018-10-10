@@ -1,6 +1,6 @@
 bin
 target
 .settings
-data
+/data
 !data/README.md
 !data/put_data_here.txt
