@@ -55,6 +55,10 @@ public class TraceDataset {
 		sort();
 	}
 
+	public void removeTrace(Trace trace) {
+		traceMap.get(trace.assignmentID).remove(trace);
+	}
+
 	public void print(RatingConfig config) {
 		System.out.println("#### " + name + " ####");
 		for (String assignmentID : traceMap.keySet()) {
