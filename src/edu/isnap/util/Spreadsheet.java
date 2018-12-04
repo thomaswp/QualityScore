@@ -18,11 +18,21 @@ import org.apache.commons.csv.CSVPrinter;
 public class Spreadsheet {
 	public final static String TRUE = "TRUE", FALSE = "FALSE";
 
+	private final CSVFormat format;
+
 	private List<Map<String, Object>> rows = new LinkedList<>();
 	private Map<String, Object> header = new LinkedHashMap<>();
 	private Map<String,Object> row;
 	private CSVPrinter printer;
 	private PrintStream printStream;
+
+	public Spreadsheet(CSVFormat format) {
+		this.format = format;
+	}
+
+	public Spreadsheet() {
+		this(CSVFormat.DEFAULT);
+	}
 
 	public boolean isWriting() {
 		return printStream != null;
@@ -68,7 +78,7 @@ public class Spreadsheet {
 		if (row == null) return;
 		if (printer == null) {
 			String[] header = row.keySet().toArray(new String[row.keySet().size()]);
-			printer = new CSVPrinter(printStream, CSVFormat.DEFAULT.withHeader(header));
+			printer = new CSVPrinter(printStream, format.withHeader(header));
 		}
 		for (Map<String,Object> row : rows) {
 			printer.printRecord(row.values());

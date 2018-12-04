@@ -1,8 +1,10 @@
 package edu.isnap.node;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -197,12 +199,12 @@ public class ASTNode implements INode {
 	}
 
 	public JSONObject toJSON() {
-		JSONObject object = new JSONObject();
+		JSONObject object = new OJSONObject();
 		object.put("type", type);
 		if (value != null) object.put("value", value);
 		if (id != null) object.put("id", id);
 		if (children.size() > 0) {
-			JSONObject children = new JSONObject();
+			JSONObject children = new OJSONObject();
 			JSONArray childrenOrder = new JSONArray();
 			for (int i = 0; i < this.children.size(); i++) {
 				String relation = childRelations.get(i);
@@ -213,6 +215,20 @@ public class ASTNode implements INode {
 			object.put("childrenOrder", childrenOrder);
 		}
 		return object;
+	}
+
+	// We want the fields to come out in the order we add them (with extendable children last)
+	// for readability
+	private static class OJSONObject extends JSONObject {
+		public OJSONObject() {
+			try {
+				Field f = JSONObject.class.getDeclaredField("map");
+			    f.setAccessible(true);
+			    f.set(this, new LinkedHashMap<String, Object>());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void autoID(String prefix) {
