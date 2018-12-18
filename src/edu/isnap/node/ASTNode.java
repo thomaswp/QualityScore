@@ -82,10 +82,10 @@ public class ASTNode implements INode {
 			return a;
 		}
 
-		public String markSource(String source) {
+		public String markSource(String source, String with) {
 			String[] lines = source.split("\n");
 			String sourceLine = lines[line - 1];
-			sourceLine = sourceLine.substring(0, col) + "|!|" + sourceLine.substring(col);
+			sourceLine = sourceLine.substring(0, col) + with + sourceLine.substring(col);
 			lines[line - 1] = sourceLine;
 			return String.join("\n", lines);
 		}
@@ -334,13 +334,24 @@ public class ASTNode implements INode {
 		}
 	}
 
-	public SourceLocation getSourceLocation() {
+	public SourceLocation getSourceLocationStart() {
 		if (sourceLocation != null) return sourceLocation;
 		SourceLocation min = null;
 		for (ASTNode child : children) {
-			min = SourceLocation.getEarlier(min, child.getSourceLocation());
+			min = SourceLocation.getEarlier(min, child.getSourceLocationStart());
 		}
 		return min;
+	}
+
+	public SourceLocation getSourceLocationEnd() {
+		if (parent == null) return null;
+		int index = index();
+		for (int i = index + 1; i < parent.children.size(); i++) {
+			SourceLocation sibStart = parent.children.get(i).getSourceLocationStart();
+//			System.out.printf("%d %s %s\n", i, parent.children.get(i), sibStart);
+			if (sibStart != null) return sibStart;
+		}
+		return parent.getSourceLocationEnd();
 	}
 
 	@Override
