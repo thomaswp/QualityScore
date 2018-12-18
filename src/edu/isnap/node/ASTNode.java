@@ -54,6 +54,8 @@ public class ASTNode implements INode {
 	 */
 	public String id;
 
+	public SourceLocation sourceLocation;
+
 	private ASTNode parent;
 
 	private final List<ASTNode> children = new ArrayList<>();
@@ -61,6 +63,38 @@ public class ASTNode implements INode {
 
 	private final List<String> childRelations = new ArrayList<>();
 
+	public static class SourceLocation {
+		public final int line, col;
+
+		public SourceLocation(int line, int col) {
+			this.line = line;
+			this.col = col;
+		}
+
+		public static SourceLocation getEarlier(SourceLocation a, SourceLocation b) {
+			if (a == null) return b;
+			if (b == null) return a;
+
+			if (a.line < b.line) return a;
+			if (b.line < a.line) return b;
+
+			if (b.col < a.col) return b;
+			return a;
+		}
+
+		public String markSource(String source) {
+			String[] lines = source.split("\n");
+			String sourceLine = lines[line - 1];
+			sourceLine = sourceLine.substring(0, col) + "|!|" + sourceLine.substring(col);
+			lines[line - 1] = sourceLine;
+			return String.join("\n", lines);
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%d|%d", line, col);
+		}
+	}
 
 	@Override
 	public ASTNode parent() {
@@ -168,6 +202,13 @@ public class ASTNode implements INode {
 		String id = object.has("id") ? object.getString("id") : null;
 
 		ASTNode node = new ASTNode(type, value, id);
+
+		if (object.has("sourceLine") && object.has("sourceCol")) {
+			try {
+				node.sourceLocation = new SourceLocation(
+						object.getInt("sourceLine"), object.getInt("sourceCol"));
+			} catch (JSONException e) { }
+		}
 
 		JSONObject children = object.optJSONObject("children");
 		if (children != null) {
@@ -281,7 +322,9 @@ public class ASTNode implements INode {
 	}
 
 	public ASTNode shallowCopy() {
-		return new ASTNode(type, value, id);
+		ASTNode copy = new ASTNode(type, value, id);
+		copy.sourceLocation = this.sourceLocation;
+		return copy;
 	}
 
 	public void recurse(Consumer<ASTNode> action) {
@@ -289,6 +332,15 @@ public class ASTNode implements INode {
 		for (ASTNode child : children) {
 			if (child != null) child.recurse(action);
 		}
+	}
+
+	public SourceLocation getSourceLocation() {
+		if (sourceLocation != null) return sourceLocation;
+		SourceLocation min = null;
+		for (ASTNode child : children) {
+			min = SourceLocation.getEarlier(min, child.getSourceLocation());
+		}
+		return min;
 	}
 
 	@Override
