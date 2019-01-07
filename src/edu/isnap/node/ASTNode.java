@@ -64,6 +64,7 @@ public class ASTNode implements INode {
 	private final List<String> childRelations = new ArrayList<>();
 
 	public static class SourceLocation {
+		// TODO: Update this class to parse your new start and end locations
 		public final int line, col;
 
 		public SourceLocation(int line, int col) {
