@@ -54,7 +54,8 @@ public class ASTNode implements INode {
 	 */
 	public String id;
 
-	public SourceLocation sourceLocation;
+	public SourceLocation startSourceLocation;
+	public SourceLocation endSourceLocation;
 
 	private ASTNode parent;
 
@@ -204,11 +205,18 @@ public class ASTNode implements INode {
 
 		ASTNode node = new ASTNode(type, value, id);
 
-		if (object.has("sourceLine") && object.has("sourceCol")) {
+		if (object.has("sourceStart")) {
 			try {
-				node.sourceLocation = new SourceLocation(
-						object.getInt("sourceLine"), object.getInt("sourceCol"));
-			} catch (JSONException e) { }
+				JSONArray startArray = object.getJSONArray("sourceStart");
+				node.startSourceLocation = new SourceLocation(startArray.getInt(0), startArray.getInt(1));
+			} catch (JSONException e) { e.printStackTrace(); }
+		}
+
+		if (object.has("sourceEnd")) {
+			try {
+				JSONArray endArray = object.getJSONArray("sourceEnd");
+				node.endSourceLocation = new SourceLocation(endArray.getInt(0), endArray.getInt(1));
+			} catch (JSONException e) { e.printStackTrace(); }
 		}
 
 		JSONObject children = object.optJSONObject("children");
@@ -265,8 +273,8 @@ public class ASTNode implements INode {
 		public OJSONObject() {
 			try {
 				Field f = JSONObject.class.getDeclaredField("map");
-			    f.setAccessible(true);
-			    f.set(this, new LinkedHashMap<String, Object>());
+				f.setAccessible(true);
+				f.set(this, new LinkedHashMap<String, Object>());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -324,7 +332,8 @@ public class ASTNode implements INode {
 
 	public ASTNode shallowCopy() {
 		ASTNode copy = new ASTNode(type, value, id);
-		copy.sourceLocation = this.sourceLocation;
+		copy.startSourceLocation = this.startSourceLocation;
+		copy.endSourceLocation = this.endSourceLocation;
 		return copy;
 	}
 
@@ -336,7 +345,7 @@ public class ASTNode implements INode {
 	}
 
 	public SourceLocation getSourceLocationStart() {
-		if (sourceLocation != null) return sourceLocation;
+		if (startSourceLocation != null) { return startSourceLocation; }
 		SourceLocation min = null;
 		for (ASTNode child : children) {
 			min = SourceLocation.getEarlier(min, child.getSourceLocationStart());
@@ -345,6 +354,7 @@ public class ASTNode implements INode {
 	}
 
 	public SourceLocation getSourceLocationEnd() {
+		if(endSourceLocation != null) { return endSourceLocation; }
 		if (parent == null) return null;
 		int index = index();
 		for (int i = index + 1; i < parent.children.size(); i++) {
