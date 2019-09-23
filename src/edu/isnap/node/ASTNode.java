@@ -16,8 +16,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.isnap.ctd.hint.Hint;
 import edu.isnap.node.PrettyPrint.Params;
 import edu.isnap.rating.RatingConfig;
+import edu.isnap.sourcecheck.edit.EditHint;
 import edu.isnap.util.Diff;
 
 public class ASTNode implements INode {
@@ -64,7 +66,7 @@ public class ASTNode implements INode {
 
 	private final List<String> childRelations = new ArrayList<>();
 
-	public static class SourceLocation {
+	public static class SourceLocation implements Comparable<SourceLocation>{
 		// TODO: Update this class to parse your new start and end locations
 		public final int line, col;
 
@@ -82,6 +84,7 @@ public class ASTNode implements INode {
 
 			if (b.col < a.col) return b;
 			return a;
+			//TODO: need to investigate returning null if they are the same location. This could break callers.
 		}
 
 		public String markSource(String source, String with) {
@@ -95,6 +98,15 @@ public class ASTNode implements INode {
 		@Override
 		public String toString() {
 			return String.format("%d|%d", line, col);
+		}
+		
+		@Override
+		public final int compareTo(SourceLocation other) {
+			SourceLocation earlier = getEarlier(this, other);
+			if (earlier == this) {
+				return 1; //the other location comes after this
+			}
+			return -1; //the other location comes before this, or they are at the same location
 		}
 	}
 
