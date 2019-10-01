@@ -16,10 +16,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.isnap.ctd.hint.Hint;
 import edu.isnap.node.PrettyPrint.Params;
 import edu.isnap.rating.RatingConfig;
-import edu.isnap.sourcecheck.edit.EditHint;
 import edu.isnap.util.Diff;
 
 public class ASTNode implements INode {
