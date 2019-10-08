@@ -89,7 +89,7 @@ public class Spreadsheet {
 	public void endWrite() throws IOException {
 		if (!isWriting()) return;
 		writeRows();
-		printer.close();
+		if (printer != null) printer.close();
 		printer = null;
 		printStream = null;
 	}
