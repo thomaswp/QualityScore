@@ -106,6 +106,10 @@ public class ASTNode implements INode {
 			}
 			return -1; //the other location comes before this, or they are at the same location
 		}
+		
+		public SourceLocation copy() {
+			return new SourceLocation(line, col);
+		}
 	}
 
 	@Override
