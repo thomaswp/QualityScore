@@ -72,7 +72,7 @@ public class ASTNode implements INode {
 		private SourceLocation() {
 			this(0, 0);
 		}
-		
+
 		public SourceLocation(int line, int col) {
 			this.line = line;
 			this.col = col;
@@ -102,7 +102,7 @@ public class ASTNode implements INode {
 		public String toString() {
 			return String.format("%d|%d", line, col);
 		}
-		
+
 		@Override
 		public final int compareTo(SourceLocation other) {
 			SourceLocation earlier = getEarlier(this, other);
@@ -111,7 +111,7 @@ public class ASTNode implements INode {
 			}
 			return -1; //the other location comes before this, or they are at the same location
 		}
-		
+
 		public SourceLocation copy() {
 			return new SourceLocation(line, col);
 		}
