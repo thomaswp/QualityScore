@@ -68,7 +68,7 @@ public class ASTNode implements INode {
 		// TODO: Update this class to parse your new start and end locations
 		public final int line, col;
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings("unused")
 		private SourceLocation() {
 			this(0, 0);
 		}
