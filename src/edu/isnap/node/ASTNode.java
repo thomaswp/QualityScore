@@ -229,8 +229,6 @@ public class ASTNode implements INode {
 				JSONArray startArray = object.getJSONArray("sourceStart");
 				node.startSourceLocation = new SourceLocation(startArray.getInt(0), startArray.getInt(1));
 			} catch (JSONException e) { e.printStackTrace(); }
-		} else {
-			System.out.println("Node with no start: + " + type);
 		}
 
 		if (object.has("sourceEnd")) {
