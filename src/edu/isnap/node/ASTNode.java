@@ -54,7 +54,8 @@ public class ASTNode implements INode {
 	 */
 	public String id;
 
-	public SourceLocation sourceLocation;
+	public SourceLocation startSourceLocation;
+	public SourceLocation endSourceLocation;
 
 	private ASTNode parent;
 
@@ -63,8 +64,14 @@ public class ASTNode implements INode {
 
 	private final List<String> childRelations = new ArrayList<>();
 
-	public static class SourceLocation {
+	public static class SourceLocation implements Comparable<SourceLocation>{
+		// TODO: Update this class to parse your new start and end locations
 		public final int line, col;
+
+		@SuppressWarnings("unused")
+		private SourceLocation() {
+			this(0, 0);
+		}
 
 		public SourceLocation(int line, int col) {
 			this.line = line;
@@ -80,6 +87,7 @@ public class ASTNode implements INode {
 
 			if (b.col < a.col) return b;
 			return a;
+			//TODO: need to investigate returning null if they are the same location. This could break callers.
 		}
 
 		public String markSource(String source, String with) {
@@ -93,6 +101,19 @@ public class ASTNode implements INode {
 		@Override
 		public String toString() {
 			return String.format("%d|%d", line, col);
+		}
+
+		@Override
+		public final int compareTo(SourceLocation other) {
+			SourceLocation earlier = getEarlier(this, other);
+			if (earlier == this) {
+				return 1; //the other location comes after this
+			}
+			return -1; //the other location comes before this, or they are at the same location
+		}
+
+		public SourceLocation copy() {
+			return new SourceLocation(line, col);
 		}
 	}
 
@@ -203,11 +224,18 @@ public class ASTNode implements INode {
 
 		ASTNode node = new ASTNode(type, value, id);
 
-		if (object.has("sourceLine") && object.has("sourceCol")) {
+		if (object.has("sourceStart")) {
 			try {
-				node.sourceLocation = new SourceLocation(
-						object.getInt("sourceLine"), object.getInt("sourceCol"));
-			} catch (JSONException e) { }
+				JSONArray startArray = object.getJSONArray("sourceStart");
+				node.startSourceLocation = new SourceLocation(startArray.getInt(0), startArray.getInt(1));
+			} catch (JSONException e) { e.printStackTrace(); }
+		}
+
+		if (object.has("sourceEnd")) {
+			try {
+				JSONArray endArray = object.getJSONArray("sourceEnd");
+				node.endSourceLocation = new SourceLocation(endArray.getInt(0), endArray.getInt(1));
+			} catch (JSONException e) { e.printStackTrace(); }
 		}
 
 		JSONObject children = object.optJSONObject("children");
@@ -264,8 +292,8 @@ public class ASTNode implements INode {
 		public OJSONObject() {
 			try {
 				Field f = JSONObject.class.getDeclaredField("map");
-			    f.setAccessible(true);
-			    f.set(this, new LinkedHashMap<String, Object>());
+				f.setAccessible(true);
+				f.set(this, new LinkedHashMap<String, Object>());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -323,7 +351,8 @@ public class ASTNode implements INode {
 
 	public ASTNode shallowCopy() {
 		ASTNode copy = new ASTNode(type, value, id);
-		copy.sourceLocation = this.sourceLocation;
+		copy.startSourceLocation = this.startSourceLocation;
+		copy.endSourceLocation = this.endSourceLocation;
 		return copy;
 	}
 
@@ -335,7 +364,7 @@ public class ASTNode implements INode {
 	}
 
 	public SourceLocation getSourceLocationStart() {
-		if (sourceLocation != null) return sourceLocation;
+		if (startSourceLocation != null) { return startSourceLocation; }
 		SourceLocation min = null;
 		for (ASTNode child : children) {
 			min = SourceLocation.getEarlier(min, child.getSourceLocationStart());
@@ -344,6 +373,7 @@ public class ASTNode implements INode {
 	}
 
 	public SourceLocation getSourceLocationEnd() {
+		if(endSourceLocation != null) { return endSourceLocation; }
 		if (parent == null) return null;
 		int index = index();
 		for (int i = index + 1; i < parent.children.size(); i++) {
