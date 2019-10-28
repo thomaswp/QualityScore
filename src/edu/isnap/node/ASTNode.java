@@ -92,9 +92,18 @@ public class ASTNode implements INode {
 
 		public String markSource(String source, String with) {
 			String[] lines = source.split("\n");
+			int line = this.line;
+			int col = this.col;
+			// If the line isn't present, cap it
+			if (line >= lines.length) line = lines.length - 1;
 			String sourceLine = lines[line - 1];
+			// Col is 1-indexed, so we use length, no length - 1
+			if (col > sourceLine.length()) col = sourceLine.length();
 			sourceLine = sourceLine.substring(0, col) + with + sourceLine.substring(col);
 			lines[line - 1] = sourceLine;
+			if (line != this.line || col != this.col) {
+				System.err.printf("Truncating source location %s for source:\n%s\n", this, source);
+			}
 			return String.join("\n", lines);
 		}
 
