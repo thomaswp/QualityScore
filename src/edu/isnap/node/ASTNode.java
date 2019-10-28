@@ -271,20 +271,14 @@ public class ASTNode implements INode {
 				ASTNode child = parse(children.getJSONObject(relation));
 				node.addChild(relation, child);
 			}
-		}
-		else {
-			try {
-				JSONArray childrenArray = object.getJSONArray("children");
-				if (childrenArray != null) {
-					for(int i = 0; i< childrenArray.length(); i++) {
-						JSONObject jsonObject = (JSONObject)childrenArray.get(i);
-						ASTNode child = parse(jsonObject);
-						node.addChild(jsonObject.getString("type"), child);
-					}
+		} else {
+			JSONArray childrenArray = object.getJSONArray("children");
+			if (childrenArray != null) {
+				for (int i = 0; i < childrenArray.length(); i++) {
+					JSONObject jsonObject = (JSONObject) childrenArray.get(i);
+					ASTNode child = parse(jsonObject);
+					node.addChild(String.valueOf(i), child);
 				}
-			}
-			catch(JSONException j) {
-
 			}
 		}
 
