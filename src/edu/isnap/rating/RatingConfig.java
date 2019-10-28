@@ -234,4 +234,66 @@ public interface RatingConfig {
 			return value;
 		}
 	};
+
+	public static RatingConfig Java = new RatingConfig() {
+		@Override
+		public boolean useSpecificNumericLiterals() {
+			return true;
+		}
+
+		// These nodes are added automatically (i.e. if you add a FunctionDef, arguments are added),
+		// and they have no meaning if they have no children that aren't on this list
+		private final Set<String> Prunable = new HashSet<>(Arrays.asList(
+				new String[] {
+						ASTNode.EMPTY_TYPE,
+						"Load",
+						"Store",
+						"Del",
+						"list",
+						"alias",
+						"arguments",
+						"arg",
+						"Expr",
+				}
+			));
+
+		@Override
+		public boolean trimIfParentIsAdded(String type, String value) {
+			return Prunable.contains(type) ||
+					// Names without a value area newly created identifier not previously present.
+					// Since there was no way in Python to create a variable assignment without
+					// specifying a variable, these should not be required for exact matching,
+					// similar to other nodes that are automatically inserted as children
+					("Name".equals(type) && value == null);
+		}
+
+		@Override
+		public boolean trimIfChildless(String type) {
+			String[] variableChildrenTypes = {"Modifier", "Operator", "NameExpr",
+					"Parameter", "IntegerLiteralExpr", "VoidType", "PrimitiveType"};
+			return Arrays.asList(variableChildrenTypes).contains(type);
+		}
+
+		@Override
+		public boolean nodeTypeHasBody(String type) {
+			String[] variableChildrenTypes = {"Modifier", "Operator", "NameExpr",
+					"Parameter", "IntegerLiteralExpr", "VoidType", "PrimitiveType"};
+			return !Arrays.asList(variableChildrenTypes).contains(type);
+		}
+
+
+		@Override
+		public boolean hasFixedChildren(String type, String parentType) {
+			// In Python, only the list type has flexible children, and even some of those are
+			// almost always fixed (at least for simple student programs)
+			String[] variableChildrenTypes = {"ClassOrInterface", "ConstructorDeclaration", "BlockStmt",
+					"IfStmt", "MethodCallExpr", "MethodDeclaration"};
+			return Arrays.asList(variableChildrenTypes).contains(type);
+		}
+
+		@Override
+		public String normalizeNodeValue(String type, String value) {
+			return value;
+		}
+	};
 }
