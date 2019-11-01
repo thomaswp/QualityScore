@@ -2,6 +2,7 @@ package edu.isnap.rating;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import edu.isnap.node.ASTNode;
@@ -241,54 +242,45 @@ public interface RatingConfig {
 			return true;
 		}
 
-		// These nodes are added automatically (i.e. if you add a FunctionDef, arguments are added),
-		// and they have no meaning if they have no children that aren't on this list
-		private final Set<String> Prunable = new HashSet<>(Arrays.asList(
-				new String[] {
-						ASTNode.EMPTY_TYPE,
-						"Load",
-						"Store",
-						"Del",
-						"list",
-						"alias",
-						"arguments",
-						"arg",
-						"Expr",
-				}
-			));
-
 		@Override
 		public boolean trimIfParentIsAdded(String type, String value) {
-			return Prunable.contains(type) ||
-					// Names without a value area newly created identifier not previously present.
-					// Since there was no way in Python to create a variable assignment without
-					// specifying a variable, these should not be required for exact matching,
-					// similar to other nodes that are automatically inserted as children
-					("Name".equals(type) && value == null);
+			return false;
 		}
 
 		@Override
 		public boolean trimIfChildless(String type) {
-			String[] variableChildrenTypes = {"Modifier", "Operator", "NameExpr",
-					"Parameter", "IntegerLiteralExpr", "VoidType", "PrimitiveType"};
-			return Arrays.asList(variableChildrenTypes).contains(type);
+			return "BlockStmt".equals(type);
 		}
+
+		private final List<String> bodyTypes = Arrays.asList(new String[] {
+				"ClassOrInterfaceType",
+				"BlockStmt"
+		});
 
 		@Override
 		public boolean nodeTypeHasBody(String type) {
-			String[] variableChildrenTypes = {"Modifier", "Operator", "NameExpr",
-					"Parameter", "IntegerLiteralExpr", "VoidType", "PrimitiveType"};
-			return !Arrays.asList(variableChildrenTypes).contains(type);
+			return bodyTypes.contains(type);
 		}
 
+		private final List<String> variableChildrenTypes = Arrays.asList(new String[] {
+				"CompilationUnit",
+				"ClassOrInterfaceType",
+				"FieldDeclaration",
+				"VariableDeclarator",
+				"VariableDeclarationExpr",
+				"ConstructorDeclaration",
+				"BlockStmt",
+				"MethodCallExpr",
+				"SwitchStmt",
+				"MethodDeclaration",
+				"IfStmt",
+				"SwitchEntryStmt",
+				"MethodCallExpr",
+		});
 
 		@Override
 		public boolean hasFixedChildren(String type, String parentType) {
-			// In Python, only the list type has flexible children, and even some of those are
-			// almost always fixed (at least for simple student programs)
-			String[] variableChildrenTypes = {"ClassOrInterface", "ConstructorDeclaration", "BlockStmt",
-					"IfStmt", "MethodCallExpr", "MethodDeclaration"};
-			return Arrays.asList(variableChildrenTypes).contains(type);
+			return !variableChildrenTypes.contains(type);
 		}
 
 		@Override
