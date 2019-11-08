@@ -107,9 +107,9 @@ public class ASTNode implements INode {
 		public final int compareTo(SourceLocation other) {
 			SourceLocation earlier = getEarlier(this, other);
 			if (earlier == this) {
-				return 1; //the other location comes after this
+				return -1; //the other location comes after this
 			}
-			return -1; //the other location comes before this, or they are at the same location
+			return 1; //the other location comes before this, or they are at the same location
 		}
 
 		public SourceLocation copy() {
