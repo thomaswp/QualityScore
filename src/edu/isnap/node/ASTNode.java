@@ -80,14 +80,7 @@ public class ASTNode implements INode {
 
 		public static SourceLocation getEarlier(SourceLocation a, SourceLocation b) {
 			if (a == null) return b;
-			if (b == null) return a;
-
-			if (a.line < b.line) return a;
-			if (b.line < a.line) return b;
-
-			if (b.col < a.col) return b;
-			return a;
-			//TODO: need to investigate returning null if they are the same location. This could break callers.
+			return a.compareTo(b) == 1 ? b : a;
 		}
 
 		public String markSource(String source, String with) {
@@ -114,11 +107,10 @@ public class ASTNode implements INode {
 
 		@Override
 		public final int compareTo(SourceLocation other) {
-			SourceLocation earlier = getEarlier(this, other);
-			if (earlier == this) {
-				return -1; //the other location comes after this
-			}
-			return 1; //the other location comes before this, or they are at the same location
+			if (other == null) return 1;
+			int lineComp = Integer.compare(line, other.line);
+			if (lineComp != 0) return lineComp;
+			return Integer.compare(col, other.col);
 		}
 
 		public SourceLocation copy() {
@@ -275,7 +267,7 @@ public class ASTNode implements INode {
 				node.addChild(relation, child);
 			}
 		} else {
-			JSONArray childrenArray = object.getJSONArray("children");
+			JSONArray childrenArray = object.optJSONArray("children");
 			if (childrenArray != null) {
 				for (int i = 0; i < childrenArray.length(); i++) {
 					JSONObject jsonObject = (JSONObject) childrenArray.get(i);
