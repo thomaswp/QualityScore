@@ -60,6 +60,10 @@ public class HintRater {
 		return getDatasetDir("itapS16");
 	}
 
+	public static String blackBoxDir() {
+		return getDatasetDir("blackBox");
+	}
+
 	public Validity targetValidity;
 	public boolean debug;
 

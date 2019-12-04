@@ -106,7 +106,7 @@ public class GoldStandard {
 			String assignmentID = record.get("assignmentID");
 			String requestID = record.get("requestID");
 			String year = record.get("year");
-			int hintID = Integer.parseInt(record.get("hintID"));
+			int hintID = Integer.parseInt(record.get("hintID").replaceAll("[\\D]", ""));
 			String priorityString = record.get("priority");
 			Priority priority = priorityString.isEmpty() ?
 					null : Priority.fromInt(Integer.parseInt(priorityString));

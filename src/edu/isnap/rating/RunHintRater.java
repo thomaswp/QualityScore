@@ -27,7 +27,9 @@ public class RunHintRater {
 		if (hasDataset(HintRater.itapS16Dir(), "itapS16")) {
 			hintRater.rateDir(HintRater.itapS16Dir(), RatingConfig.Python, writeRatingsToFile);
 		}
-
+		if (hasDataset(HintRater.blackBoxDir(), "blackBox")) {
+			hintRater.rateDir(HintRater.blackBoxDir(), RatingConfig.Java, writeRatingsToFile);
+		}
 		// You can also rate specific hint algorithms, rather than a whole directory
 //		hintRater.rateOneDir(HintRater.isnapF16F17Dir(), "SourceCheck", RatingConfig.Snap, true);
 //		hintRater.rateOneDir(HintRater.itapS16Dir(), "SourceCheck", RatingConfig.Python, true);
