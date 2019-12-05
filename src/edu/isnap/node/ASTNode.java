@@ -87,10 +87,10 @@ public class ASTNode implements INode {
 			String[] lines = source.split("\n");
 			int line = this.line;
 			int col = this.col;
-			// If the line isn't present, cap it
-			if (line >= lines.length) line = lines.length - 1;
+			// If the line isn't present, cap it (note, line is 1-indexed, so it can be = to length)
+			if (line > lines.length) line = lines.length;
 			String sourceLine = lines[line - 1];
-			// Col is 1-indexed, so we use length, no length - 1
+			// Col is 0-indexed but we can insert at the end of the line, so it's capped at length
 			if (col > sourceLine.length()) col = sourceLine.length();
 			sourceLine = sourceLine.substring(0, col) + with + sourceLine.substring(col);
 			lines[line - 1] = sourceLine;
