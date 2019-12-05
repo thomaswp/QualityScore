@@ -2,6 +2,7 @@ package edu.isnap.node;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -87,6 +88,11 @@ public class ASTNode implements INode {
 			String[] lines = source.split("\n");
 			int line = this.line;
 			int col = this.col;
+			// If there's an insertion at a newline at the end of the file, just add the newline
+			if (line == lines.length + 1 && col == 0) {
+				lines = Arrays.copyOf(lines, lines.length + 1);
+				lines[lines.length - 1] = "";
+			}
 			// If the line isn't present, cap it (note, line is 1-indexed, so it can be = to length)
 			if (line > lines.length) line = lines.length;
 			String sourceLine = lines[line - 1];
