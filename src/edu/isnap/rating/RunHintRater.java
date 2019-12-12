@@ -27,6 +27,9 @@ public class RunHintRater {
 		if (hasDataset(HintRater.itapS16Dir(), "itapS16")) {
 			hintRater.rateDir(HintRater.itapS16Dir(), RatingConfig.Python, writeRatingsToFile);
 		}
+		/* Place the blackBox folder (https://drive.google.com/drive/u/1/folders/11rhNMKRVGCRxWg0DILBqymc35l1-fh0d),
++                * in the data folder.
++                * */
 		if (hasDataset(HintRater.blackBoxDir(), "blackBox")) {
 			hintRater.rateDir(HintRater.blackBoxDir(), RatingConfig.Java, writeRatingsToFile);
 		}
