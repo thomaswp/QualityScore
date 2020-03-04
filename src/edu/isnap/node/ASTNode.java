@@ -66,7 +66,7 @@ public class ASTNode implements INode {
 
 	public static class SourceLocation implements Comparable<SourceLocation>{
 		// TODO: Update this class to parse your new start and end locations
-		public final int line, col;
+		public int line, col;
 
 		@SuppressWarnings("unused")
 		private SourceLocation() {
@@ -93,9 +93,15 @@ public class ASTNode implements INode {
 		public String markSource(String source, String with) {
 			String[] lines = source.split("\n");
 			String sourceLine = lines[line - 1];
-			sourceLine = sourceLine.substring(0, col) + with + sourceLine.substring(col);
+			int insertPlace = col - 1;
+			if (with.equals("</span>")) insertPlace += 1;
+			sourceLine = sourceLine.substring(0, insertPlace) + with + sourceLine.substring(insertPlace);
 			lines[line - 1] = sourceLine;
 			return String.join("\n", lines);
+		}
+		
+		public void updateCol(int pos) {
+			this.col += pos;
 		}
 
 		@Override
