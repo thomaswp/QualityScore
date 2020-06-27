@@ -16,7 +16,11 @@ public class ASTSnapshot extends ASTNode {
 	public final String source;
 
 	public ASTSnapshot(String type, String value, String id, boolean isCorrect, String sourceCode) {
-		super(type, value, id);
+		this(type, value, id, null, isCorrect, sourceCode);
+	}
+	
+	public ASTSnapshot(String type, String value, String id, String annotation, boolean isCorrect, String sourceCode) {
+		super(type, value, id, annotation);
 		this.isCorrect = isCorrect;
 		this.source = sourceCode;
 	}

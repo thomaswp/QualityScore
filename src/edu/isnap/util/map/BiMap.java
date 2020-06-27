@@ -19,15 +19,15 @@ public class BiMap<T, U> {
 	}
 
 	public U put(T from, U to) {
-		U removedFrom = fromMap.put(from, to);
+		U removedFrom = getFromMap().put(from, to);
 		T removedTo = toMap.put(to, from);
 		if (removedFrom != null && !equal(removedFrom, to)) toMap.remove(removedFrom);
-		if (removedTo != null && !equal(removedTo, from)) fromMap.remove(removedTo);
+		if (removedTo != null && !equal(removedTo, from)) getFromMap().remove(removedTo);
 		return removedFrom;
 	}
 
 	private boolean equal(Object a, Object b) {
-		if (fromMap instanceof IdentityHashMap) {
+		if (getFromMap() instanceof IdentityHashMap) {
 			return a == b;
 		}
 		if (a == null) return b == null;
@@ -35,7 +35,7 @@ public class BiMap<T, U> {
 	}
 
 	public U getFrom(T item) {
-		return fromMap.get(item);
+		return getFromMap().get(item);
 	}
 
 	public T getTo(U item) {
@@ -43,7 +43,7 @@ public class BiMap<T, U> {
 	}
 
 	public boolean containsFrom(T item) {
-		return fromMap.containsKey(item);
+		return getFromMap().containsKey(item);
 	}
 
 	public boolean containsTo(U item) {
@@ -51,17 +51,17 @@ public class BiMap<T, U> {
 	}
 
 	public void removeFrom(T item) {
-		U pair = fromMap.remove(item);
+		U pair = getFromMap().remove(item);
 		if (pair != null) toMap.remove(pair);
 	}
 
 	public void removeTo(U item) {
 		T pair = toMap.remove(item);
-		if (pair != null) fromMap.remove(pair);
+		if (pair != null) getFromMap().remove(pair);
 	}
 
 	public Set<T> keysetFrom() {
-		return fromMap.keySet();
+		return getFromMap().keySet();
 	}
 
 	public Set<U> keysetTo() {
@@ -70,11 +70,15 @@ public class BiMap<T, U> {
 
 	@Override
 	public String toString() {
-		return fromMap.toString();
+		return getFromMap().toString();
 	}
 
 	public void clear() {
-		fromMap.clear();
+		getFromMap().clear();
 		toMap.clear();
+	}
+
+	public Map<T, U> getFromMap() {
+		return fromMap;
 	}
 }

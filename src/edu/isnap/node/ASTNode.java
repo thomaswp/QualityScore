@@ -53,6 +53,11 @@ public class ASTNode implements INode {
 	 * behavior.
 	 */
 	public String id;
+	
+	/**
+	 * Used to generate high-level hints
+	 */
+	public String annotation;
 
 	public SourceLocation startSourceLocation;
 	public SourceLocation endSourceLocation;
@@ -86,13 +91,14 @@ public class ASTNode implements INode {
 			if (b.line < a.line) return b;
 
 			if (b.col < a.col) return b;
-			return a;
+			if (a.col < b.col) return a;
+			return null;
 			//TODO: need to investigate returning null if they are the same location. This could break callers.
 		}
 
 		public String markSource(String source, String with) {
 			String[] lines = source.split("\n");
-			String sourceLine = lines[line - 1];
+			String sourceLine = lines[line - 1] + " ";
 			int insertPlace = col - 1;
 			if (with.equals("</span>")) insertPlace += 1;
 			sourceLine = sourceLine.substring(0, insertPlace) + with + sourceLine.substring(insertPlace);
@@ -112,7 +118,8 @@ public class ASTNode implements INode {
 		@Override
 		public final int compareTo(SourceLocation other) {
 			SourceLocation earlier = getEarlier(this, other);
-			if (earlier == this) {
+			if (earlier == null) return 0;
+			else if (earlier == this) {
 				return 1; //the other location comes after this
 			}
 			return -1; //the other location comes before this, or they are at the same location
@@ -149,10 +156,15 @@ public class ASTNode implements INode {
 	}
 
 	public ASTNode(String type, String value, String id) {
+		this(type, value, id, null);
+	}
+	
+	public ASTNode(String type, String value, String id, String annotation) {
 		if (type == null) throw new IllegalArgumentException("'type' cannot be null");
 		this.type = type;
 		this.value = value;
 		this.id = id;
+		this.annotation = annotation;
 	}
 
 	public boolean addChild(ASTNode child) {
@@ -227,8 +239,9 @@ public class ASTNode implements INode {
 		String type = object.getString("type");
 		String value = object.has("value") ? object.getString("value") : null;
 		String id = object.has("id") ? object.getString("id") : null;
+		String annotation = object.has("annotation") ? object.getString("annotation") : null;
 
-		ASTNode node = new ASTNode(type, value, id);
+		ASTNode node = new ASTNode(type, value, id, annotation);
 
 		if (object.has("sourceStart")) {
 			try {
@@ -452,7 +465,7 @@ public class ASTNode implements INode {
 	}
 
 	public ASTSnapshot toSnapshot(boolean isCorrect, String source) {
-		ASTSnapshot snapshot = new ASTSnapshot(type, value, id, isCorrect, source);
+		ASTSnapshot snapshot = new ASTSnapshot(type, value, id, annotation, isCorrect, source);
 		for (int i = 0; i < children.size(); i++) {
 			snapshot.addChild(childRelations.get(i), children.get(i));
 		}
