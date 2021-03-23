@@ -2,7 +2,6 @@ package edu.isnap.node;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -54,6 +53,11 @@ public class ASTNode implements INode {
 	 * behavior.
 	 */
 	public String id;
+	
+	/**
+	 * Used to generate high-level hints
+	 */
+	public String annotation;
 
 	public SourceLocation startSourceLocation;
 	public SourceLocation endSourceLocation;
@@ -67,7 +71,7 @@ public class ASTNode implements INode {
 
 	public static class SourceLocation implements Comparable<SourceLocation>{
 		// TODO: Update this class to parse your new start and end locations
-		public final int line, col;
+		public int line, col;
 
 		@SuppressWarnings("unused")
 		private SourceLocation() {
@@ -81,29 +85,29 @@ public class ASTNode implements INode {
 
 		public static SourceLocation getEarlier(SourceLocation a, SourceLocation b) {
 			if (a == null) return b;
-			return a.compareTo(b) == 1 ? b : a;
+			if (b == null) return a;
+
+			if (a.line < b.line) return a;
+			if (b.line < a.line) return b;
+
+			if (b.col < a.col) return b;
+			if (a.col < b.col) return a;
+			return null;
+			//TODO: need to investigate returning null if they are the same location. This could break callers.
 		}
 
 		public String markSource(String source, String with) {
 			String[] lines = source.split("\n");
-			int line = this.line;
-			int col = this.col;
-			// If there's an insertion at a newline at the end of the file, just add the newline
-			if (line == lines.length + 1 && col == 0) {
-				lines = Arrays.copyOf(lines, lines.length + 1);
-				lines[lines.length - 1] = "";
-			}
-			// If the line isn't present, cap it (note, line is 1-indexed, so it can be = to length)
-			if (line > lines.length) line = lines.length;
-			String sourceLine = lines[line - 1];
-			// Col is 0-indexed but we can insert at the end of the line, so it's capped at length
-			if (col > sourceLine.length()) col = sourceLine.length();
-			sourceLine = sourceLine.substring(0, col) + with + sourceLine.substring(col);
+			String sourceLine = lines[line - 1] + " ";
+			int insertPlace = col - 1;
+			if (with.equals("</span>")) insertPlace += 1;
+			sourceLine = sourceLine.substring(0, insertPlace) + with + sourceLine.substring(insertPlace);
 			lines[line - 1] = sourceLine;
-			if (line != this.line || col != this.col) {
-				System.err.printf("Truncating source location %s for source:\n%s\n", this, source);
-			}
 			return String.join("\n", lines);
+		}
+		
+		public void updateCol(int pos) {
+			this.col += pos;
 		}
 
 		@Override
@@ -113,10 +117,12 @@ public class ASTNode implements INode {
 
 		@Override
 		public final int compareTo(SourceLocation other) {
-			if (other == null) return 1;
-			int lineComp = Integer.compare(line, other.line);
-			if (lineComp != 0) return lineComp;
-			return Integer.compare(col, other.col);
+			SourceLocation earlier = getEarlier(this, other);
+			if (earlier == null) return 0;
+			else if (earlier == this) {
+				return 1; //the other location comes after this
+			}
+			return -1; //the other location comes before this, or they are at the same location
 		}
 
 		public SourceLocation copy() {
@@ -150,10 +156,15 @@ public class ASTNode implements INode {
 	}
 
 	public ASTNode(String type, String value, String id) {
+		this(type, value, id, null);
+	}
+	
+	public ASTNode(String type, String value, String id, String annotation) {
 		if (type == null) throw new IllegalArgumentException("'type' cannot be null");
 		this.type = type;
 		this.value = value;
 		this.id = id;
+		this.annotation = annotation;
 	}
 
 	public boolean addChild(ASTNode child) {
@@ -225,14 +236,12 @@ public class ASTNode implements INode {
 	}
 
 	public static ASTNode parse(JSONObject object) {
-		if (!object.has("type")) {
-			System.err.println("Node missing type: " + object.toString());
-		}
 		String type = object.getString("type");
 		String value = object.has("value") ? object.getString("value") : null;
 		String id = object.has("id") ? object.getString("id") : null;
+		String annotation = object.has("annotation") ? object.getString("annotation") : null;
 
-		ASTNode node = new ASTNode(type, value, id);
+		ASTNode node = new ASTNode(type, value, id, annotation);
 
 		if (object.has("sourceStart")) {
 			try {
@@ -249,6 +258,7 @@ public class ASTNode implements INode {
 		}
 
 		JSONObject children = object.optJSONObject("children");
+		JSONArray childrenArray = object.optJSONArray("children");
 		if (children != null) {
 			JSONArray childrenOrder = object.optJSONArray("childrenOrder");
 
@@ -272,14 +282,10 @@ public class ASTNode implements INode {
 				ASTNode child = parse(children.getJSONObject(relation));
 				node.addChild(relation, child);
 			}
-		} else {
-			JSONArray childrenArray = object.optJSONArray("children");
-			if (childrenArray != null) {
-				for (int i = 0; i < childrenArray.length(); i++) {
-					JSONObject jsonObject = (JSONObject) childrenArray.get(i);
-					ASTNode child = parse(jsonObject);
-					node.addChild(String.valueOf(i), child);
-				}
+		} else if (childrenArray != null) {
+			for (int i = 0; i < childrenArray.length(); i++) {
+				ASTNode child = parse(childrenArray.getJSONObject(i));
+				node.addChild(i, child);
 			}
 		}
 
@@ -459,7 +465,7 @@ public class ASTNode implements INode {
 	}
 
 	public ASTSnapshot toSnapshot(boolean isCorrect, String source) {
-		ASTSnapshot snapshot = new ASTSnapshot(type, value, id, isCorrect, source);
+		ASTSnapshot snapshot = new ASTSnapshot(type, value, id, annotation, isCorrect, source);
 		for (int i = 0; i < children.size(); i++) {
 			snapshot.addChild(childRelations.get(i), children.get(i));
 		}

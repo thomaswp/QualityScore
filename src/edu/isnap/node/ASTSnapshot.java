@@ -14,9 +14,14 @@ public class ASTSnapshot extends ASTNode {
 	 * The source code that this snapshot was derived from, if available.
 	 */
 	public final String source;
+	
 
 	public ASTSnapshot(String type, String value, String id, boolean isCorrect, String sourceCode) {
-		super(type, value, id);
+		this(type, value, id, null, isCorrect, sourceCode);
+	}
+	
+	public ASTSnapshot(String type, String value, String id, String annotation, boolean isCorrect, String sourceCode) {
+		super(type, value, id, annotation);
 		this.isCorrect = isCorrect;
 		this.source = sourceCode;
 	}
@@ -36,6 +41,22 @@ public class ASTSnapshot extends ASTNode {
 		ASTNode node = ASTNode.parse(json);
 		return node.toSnapshot(isCorrect, source);
 	}
+	
+	/**
+	 * New overloaded method that sets node.id
+	 * @param json
+	 * @param id
+	 * @param sourceOverride
+	 * @return
+	 */
+	public static ASTSnapshot parse(JSONObject json, String id, String sourceOverride) {
+		boolean isCorrect = json.optBoolean("isCorrect") || json.optBoolean("correct");
+		String source = sourceOverride;
+		ASTNode node = ASTNode.parse(json);
+		node.id = id;
+		return node.toSnapshot(isCorrect, source);
+	}
+	
 
 	@Override
 	public JSONObject toJSON() {
